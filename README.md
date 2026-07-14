@@ -2,7 +2,7 @@
 
 A Python package for exporting, parsing, editing, and uploading Transkribus PAGE XML via the Transkribus REST API.
 
-Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS project (<lagoos.org>).
+Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS project (<https://lagoos.org>).
 
 ---
 
