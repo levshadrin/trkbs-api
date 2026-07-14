@@ -1,17 +1,26 @@
 # trkbs_api
 
-A Python package for working with Transkribus PAGE XML via the Transkribus REST API.
+A Python package for exporting, parsing, editing, and uploading Transkribus PAGE XML via the Transkribus REST API.
 
-Developed by Lev Shadrin as part of the LAGOOS project.
+Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS project (<lagoos.org>).
 
 ---
 
 ## Features
 
 - **API Client**: Log in and interact with Transkribus via a simple `TrkbsClient` class.
-- **Semantic tagging**: Tag PAGE-XML `<TextLine>` elements as headings, regesta, or marginalia via the `custom` attribute.
+- **Collection, document, page navigation**: Use `.get_col_ids()`, `.get_doc_ids()`, and `.get_page()` methods to navigate the standard Transkribus document structure.
+- **Semantic tagging**: Tag PAGE-XML `<TextLine>` elements as Transkribus strucutral tags (e.g. `heading`, `regesta`, or `marginalia`) via the `custom` attribute.
 - **Batch streaming**: Page through a document, apply a transform, write a CSV changelog, and post changes back.
 - **Easy integration**: Use as a standalone tool or import in any notebook or script.
+
+---
+
+## Requirements
+
+```
+python >= 3.9
+```
 
 ---
 
@@ -25,12 +34,11 @@ Then from the project root directory (where `pyproject.toml` is):
 pip install -e .
 ```
 
-*(If using Hatch environments:*
+If using Hatch environments:
 ```bash
 hatch env create
 hatch run pip install -e .
 ```
-*)*
 
 ---
 
@@ -52,12 +60,15 @@ export TRANSKRIBUS_USERNAME="your_transkribus_username"
 export TRANSKRIBUS_PASSWORD="your_transkribus_password"
 ```
 
-`TrkbsClient()` reads these automatically. You can also pass credentials
-directly: `TrkbsClient(user="...", pw="...")`.
+`TrkbsClient()` reads these automatically. 
+
+You can also pass credentials directly: `TrkbsClient(user="...", pw="...")`, but this is not recommended.
 
 ---
 
 ## Usage Example
+
+### General use cases
 
 ```python
 from trkbs_api import TrkbsClient, tag_heading, get_headings_by_page, find_months_in_text
@@ -75,7 +86,11 @@ docs = client.get_doc_ids(coll_id)
 
 # Fetch one page of PAGE XML
 page_xml = client.get_page(coll_id, doc_id, page_nr)
+```
 
+### LAGOOS-specific use cases
+
+```python
 # Detect French month names in the page text
 soup = BeautifulSoup(page_xml, "xml")
 months = find_months_in_text(soup.get_text())
@@ -86,6 +101,8 @@ updated_xml, lines_tagged = tag_heading(df_header, page_xml)
 if lines_tagged:
     client.post_page(updated_xml, coll_id, doc_id, page_nr)
 ```
+
+### Batch processing
 
 For batch processing across a page range, use the `*_stream` helpers
 (`tag_heading_stream`, `replace_tag_stream`, `replace_attr_stream`,
@@ -117,14 +134,6 @@ modified pages back automatically.
 - `find_months_in_text(text)`: Detect French month names in a string.
 - `get_headings_by_page(df, page_nr)`: Look up reference headers for a page.
 - `get_text(xml, regesta=False)`: Export plain text from PAGE XML.
-
----
-
-## Development Notes
-
-- Source code is in `src/trkbs_api/`.
-- Add your own scripts/notebooks to process new documents as needed.
-- Tests belong in the `tests/` folder (currently a stub).
 
 ---
 
