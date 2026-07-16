@@ -81,7 +81,7 @@ You can also pass credentials directly: `TrkbsClient(user="...", pw="...")`, but
 
 Set `TRANSKRIBUS_USERNAME` and `TRANSKRIBUS_PASSWORD` as Colab secrets, then run:
 
-```
+```python
 from google.colab import userdata
 from trkbs_api import TrkbsClient
 
