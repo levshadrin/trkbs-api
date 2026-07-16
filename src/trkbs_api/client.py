@@ -57,7 +57,9 @@ class TrkbsClient:
         # (re-serialization adds whitespace). The write path leaves this False.
         return format_page_xml(response.text) if pretty else response.text
 
-    def get_pages_stream(self, coll_id, doc_id, page_start, page_end):  # TODO add default for page_start=1
+    def get_pages_stream(self, coll_id, doc_id, page_start=1, page_end=None):
+        if page_end is None:  # stream the whole document
+            page_end = self.get_num_pages(coll_id, doc_id)
         if page_start > page_end:
             raise ValueError(f'Invalid page range: start ({page_start}) must be <= end ({page_end})')
         for page_nr in range(page_start, page_end + 1):
@@ -77,10 +79,9 @@ class TrkbsClient:
         response.raise_for_status()
         return response.json()
 
-    def get_page_nr(self, coll_id, doc_id, param=None):  # TODO refactor as get_page_total
+    def get_num_pages(self, coll_id, doc_id, param=None):
         metadata = self.get_metadata(coll_id, doc_id, param)
-        page_nr = metadata.get('nrOfPages')
-        return page_nr
+        return metadata.get('nrOfPages')
 
     def post_page(self, xml, coll_id, doc_id, page_nr, param=None):
         url = f'{BASE_URL}/collections/{coll_id}/{doc_id}/{page_nr}/text'

@@ -35,6 +35,20 @@ class _FakeSession:
         return self._response
 
 
+def test_get_num_pages_reads_metadata():
+    client = _client_with_response(_FakeResponse(200, json_data={'nrOfPages': 7}))
+    assert client.get_num_pages('coll', 'doc') == 7
+
+
+def test_get_pages_stream_whole_document_when_page_end_none():
+    # One fake response serves both get_num_pages (.json) and get_page (.text).
+    client = _client_with_response(
+        _FakeResponse(200, text='<PcGts/>', json_data={'nrOfPages': 3})
+    )
+    pages = [n for n, _ in client.get_pages_stream('coll', 'doc')]
+    assert pages == [1, 2, 3]                 # page_start=1, page_end derived
+
+
 def _client_with_response(response):
     client = TrkbsClient.__new__(TrkbsClient)  # skip __init__/login
     client.timeout = 30
