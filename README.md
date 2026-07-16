@@ -128,6 +128,18 @@ docs = client.get_doc_ids(coll_id)
 page_xml = client.get_page(coll_id, doc_id, page_nr)
 ```
 
+> **Readable output.** Transkribus serves PAGE XML compact (single-line). For a
+> human-readable, indented view, pass `pretty=True` (or call `format_page_xml`
+> on any PAGE-XML string):
+>
+> ```python
+> print(client.get_page(coll_id, doc_id, page_nr, pretty=True))
+> ```
+>
+> This is **view-only** — pretty-printing adds whitespace, so never pass a
+> prettified string to `post_page`. Use the default (raw) output for edits and
+> uploads; the batch/tagging helpers already do.
+
 ### LAGOOS-specific use cases
 
 ```python
