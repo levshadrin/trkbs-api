@@ -49,7 +49,7 @@ hatch run pip install -e .
 ```
 
 If using Colab:
-```
+```python
 !pip install -q git+https://github.com/levshadrin/trkbs-api
 ```
 
