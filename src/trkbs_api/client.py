@@ -25,11 +25,12 @@ class TrkbsClient:
         self.session = requests.Session()
         login_creds = {'user': self.user, 'pw': self.pw}
         r = self.session.post(f'{BASE_URL}/auth/login', data=login_creds, timeout=self.timeout)
-        if r.status_code == 200:
-            logger.info('Transkribus login successful (status %s)', r.status_code)
-        else:
+        try:
+            r.raise_for_status()
+        except requests.HTTPError:
             logger.debug('Login failed response body: %s', r.text)
-            raise Exception(f'Login failed with status {r.status_code}')
+            raise
+        logger.info('Transkribus login successful (status %s)', r.status_code)
 
     def get_col_ids(self):
         url = f'{BASE_URL}/collections'
