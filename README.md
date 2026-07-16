@@ -24,8 +24,6 @@ Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS projec
 - [Log output](#log-output)
 - [Functions & Classes](#main-functions--classes)
 
----
-
 ## Installation
 
 ### Requirements
@@ -49,7 +47,7 @@ hatch run pip install -e .
 ```
 
 If using Colab:
-```python
+```
 !pip install -q git+https://github.com/levshadrin/trkbs-api
 ```
 
