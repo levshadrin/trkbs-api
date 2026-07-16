@@ -3,6 +3,8 @@ import os
 
 import requests
 
+from .export import format_page_xml
+
 try:
     from dotenv import load_dotenv
     load_dotenv()
@@ -46,12 +48,14 @@ class TrkbsClient:
         doc_dict = {d['title']: d['docId'] for d in response.json()}
         return doc_dict
 
-    def get_page(self, coll_id, doc_id, page_nr, param=None):
+    def get_page(self, coll_id, doc_id, page_nr, param=None, pretty=False):
         url = f'{BASE_URL}/collections/{coll_id}/{doc_id}/{page_nr}/text'
         if param: url += f'?{param}'
         response = self.session.get(url, timeout=self.timeout)
         response.raise_for_status()
-        return response.text
+        # pretty=True re-indents for human reading only; never post it back
+        # (re-serialization adds whitespace). The write path leaves this False.
+        return format_page_xml(response.text) if pretty else response.text
 
     def get_pages_stream(self, coll_id, doc_id, page_start, page_end):  # TODO add default for page_start=1
         if page_start > page_end:

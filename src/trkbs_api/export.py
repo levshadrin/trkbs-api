@@ -1,4 +1,25 @@
 from bs4 import BeautifulSoup as bsp
+from lxml import etree
+
+
+def format_page_xml(xml):
+    """Return an indented, human-readable copy of a PAGE-XML string.
+
+    Transkribus serves PAGE XML compact (single-line) as of platform 2.47.0; this
+    re-indents it for reading. Uses lxml (the same parser backing
+    ``BeautifulSoup(..., 'xml')`` elsewhere): structural elements are indented
+    while text-bearing elements such as ``<Unicode>`` stay intact on one line.
+
+    View-only. Re-serialization adds inter-element whitespace, so **never** feed
+    the result to ``post_page`` — round-trip the raw ``get_page`` output for
+    writes instead.
+    """
+    parser = etree.XMLParser(remove_blank_text=True)
+    root = etree.fromstring(xml.encode('utf-8'), parser)
+    return etree.tostring(
+        root, pretty_print=True, xml_declaration=True, encoding='UTF-8'
+    ).decode('utf-8')
+
 
 # basic text export with 'regesta' flag (dependant on TRKBS structural tagging)
 def get_text(xml, regesta=False):

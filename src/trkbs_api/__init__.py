@@ -20,7 +20,7 @@ from .regesta import (
     remove_regesta,
 )
 from .marginalia import tag_marginalia, tag_marginalia_stream
-from .export import get_text
+from .export import get_text, format_page_xml
 
 __all__ = [
     "TrkbsClient",
@@ -41,4 +41,5 @@ __all__ = [
     "tag_marginalia",
     "tag_marginalia_stream",
     "get_text",
+    "format_page_xml",
 ]

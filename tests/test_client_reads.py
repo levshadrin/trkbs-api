@@ -54,3 +54,13 @@ def test_get_page_raises_on_error_status():
 def test_get_page_returns_text_on_success():
     client = _client_with_response(_FakeResponse(200, text='<PcGts/>'))
     assert client.get_page('coll', 'doc', 1) == '<PcGts/>'
+
+
+def test_get_page_pretty_indents_only_when_requested():
+    compact = '<a><b>text</b></a>'
+    client = _client_with_response(_FakeResponse(200, text=compact))
+    # Default: raw server bytes, unchanged (the write path relies on this).
+    assert client.get_page('coll', 'doc', 1) == compact
+    # Opt-in: indented for reading.
+    pretty = client.get_page('coll', 'doc', 1, pretty=True)
+    assert '\n' in pretty and '  <b>text</b>' in pretty

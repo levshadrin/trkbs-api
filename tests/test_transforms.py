@@ -16,6 +16,8 @@ from trkbs_api import (
     tag_empty_lines,
     header_string_lookup,
     remove_regesta,
+    format_page_xml,
+    get_text,
 )
 
 
@@ -85,3 +87,24 @@ def test_remove_regesta_emits_deprecation_warning():
     xml = _page([_line('structure {type:regesta;}', 'x')])
     with pytest.warns(DeprecationWarning):
         remove_regesta(xml)
+
+
+# --- Feature: format_page_xml pretty-prints without corrupting content --------
+
+def test_format_page_xml_indents_compact_input():
+    # Compact, single-line input like Transkribus 2.47.0 serves.
+    xml = _page([_line('readingOrder {index:0;}', 'Bonjour')])
+    pretty = format_page_xml(xml)
+    assert '\n' in pretty                      # now multi-line
+    assert any(ln.startswith(' ') for ln in pretty.splitlines())  # indented
+    # Text content is preserved and still extractable after formatting.
+    assert get_text(pretty) == 'Bonjour'
+    # Text-bearing element stays intact on one line (not split/indented).
+    assert '<Unicode>Bonjour</Unicode>' in pretty
+
+
+def test_format_page_xml_is_idempotent_on_already_indented():
+    xml = _page([_line('readingOrder {index:0;}', 'Bonjour')])
+    once = format_page_xml(xml)
+    twice = format_page_xml(once)
+    assert once == twice
