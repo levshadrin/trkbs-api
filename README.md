@@ -19,14 +19,14 @@ Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS projec
 ## Contents
 
 - [Installation](#installation)
-- [Credentials & Environment](#environment)
-- [Usage Examples](#usage)
-- [Log output](#logging)
-- [Functions & Classes](#functions)
+- [Credentials & Environment](#credentials--environment)
+- [Usage Examples](#usage-examples)
+- [Log output](#log-output)
+- [Functions & Classes](#main-functions--classes)
 
 ---
 
-## Installation {#installation}
+## Installation
 
 ### Requirements
 
@@ -55,7 +55,7 @@ If using Colab:
 
 ---
 
-## Credentials & Environment {#environment}
+## Credentials & Environment
 
 ### **Best Practice: Use a `.env` File**
 
@@ -93,7 +93,7 @@ client = TrkbsClient(
 
 ---
 
-## Usage Examples {#usage}
+## Usage Examples
 
 ### General use cases
 
@@ -155,7 +155,7 @@ re-running with `page_start` set to the page that failed.
 
 ---
 
-## Log output {#logging}
+## Log output
 
 The package logs through Python's standard `logging` module under the
 `trkbs_api` logger — it never `print()`s. By default `logging` shows only
@@ -181,7 +181,7 @@ logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
 
 ---
 
-## Main Functions & Classes {#functions}
+## Main Functions & Classes
 
 ### **TrkbsClient**
 - Handles Transkribus login and API calls over HTTPS.
