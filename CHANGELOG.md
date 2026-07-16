@@ -2,6 +2,43 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.0] - 2026-07-16
+
+First minor release: new API, a rename, and behaviour changes. Includes the
+`format_page_xml` pretty-printer added earlier. Being pre-1.0, this release makes
+a few clean breaks (no back-compat aliases).
+
+### Added
+- **`format_page_xml(xml)`** and **`get_page(..., pretty=True)`** — indented,
+  human-readable PAGE XML for viewing (Transkribus now serves it compact).
+- **`count_tag_by_page(client, coll, doc, start, end, tag)`** — counts
+  `structure {type:<tag>}` lines per page, **including zero-count pages** (which
+  the old `validate_*` dropped). Replaces `validate_headings` / `validate_regesta`.
+- **Configurable structural tag names.** `tag_heading`, `tag_marginalia`,
+  `tag_empty_lines`, `add_regesta`, and `get_text` take `heading_tag` /
+  `regesta_tag` / `marginalia_tag` arguments (defaulting to the Transkribus/LAGOOS
+  names) so other projects can use their own vocabulary.
+- **`continue_on_error` flag** on every `*_stream` helper: log-and-continue past a
+  failed page instead of the default fail-fast abort.
+- **`replace_tag(..., literal=True)`** to match a tag verbatim (`re.escape`),
+  correct for Transkribus tags containing braces.
+
+### Changed
+- **`get_page_nr` → `get_num_pages`** (rename, no alias).
+- **`get_pages_stream(coll, doc, page_start=1, page_end=None)`** — `page_start`
+  now defaults to 1, and `page_end=None` streams to the end of the document
+  (derived via `get_num_pages`). All `*_stream` helpers inherit these defaults.
+- Structural tag matching now tests the exact `type:<name>` token instead of a
+  bare substring, so a tag name is no longer confused with a longer one
+  (`heading` vs `subheading`). `*_stream` runs log a one-line summary
+  (pages/lines changed, failures) on completion.
+
+### Removed
+- **`remove_regesta`** — deprecated in 0.2.1; destructive (`decompose()` deletes
+  whole lines). Use `get_text(xml, regesta=False)` to exclude regesta
+  non-destructively.
+- **`validate_headings`, `validate_regesta`** — superseded by `count_tag_by_page`.
+
 ## [0.2.1] - 2026-07-16
 
 Patch release: correctness fixes and safe internal cleanups from a functional

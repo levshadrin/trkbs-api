@@ -187,21 +187,28 @@ logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
 - Methods:
   - `get_col_ids()`: List all collections (`{colName: colId}`).
   - `get_doc_ids(coll_id)`: List all documents in a collection (`{title: docId}`).
-  - `get_page(coll_id, doc_id, page_nr)`: Fetch PAGE XML for a page.
-  - `get_pages_stream(coll_id, doc_id, page_start, page_end)`: Yield `(page_nr, xml)` over a range.
+  - `get_page(coll_id, doc_id, page_nr, pretty=False)`: Fetch PAGE XML for a page (`pretty=True` for an indented view).
+  - `get_pages_stream(coll_id, doc_id, page_start=1, page_end=None)`: Yield `(page_nr, xml)` over a range; `page_end=None` streams the whole document.
   - `post_page(xml, coll_id, doc_id, page_nr)`: Upload modified PAGE XML (raises on HTTP error).
-  - `get_metadata` / `get_page_nr` / `get_page_transcript_ids`: Document/page metadata helpers.
+  - `get_metadata` / `get_num_pages` / `get_page_transcript_ids`: Document/page metadata helpers.
 
 ### **Tagging**
 - `tag_heading(df_header, xml)` / `tag_heading_stream(...)`: Tag heading lines.
-- `tag_empty_lines(xml)`, `add_regesta`, `remove_regesta`, `validate_regesta`: Regesta handling.
+- `tag_empty_lines(xml)`, `add_regesta`: Regesta handling.
 - `tag_marginalia(xml)` / `tag_marginalia_stream(...)`: Tag marginalia lines.
 - `replace_tag` / `replace_tag_stream`, `replace_attr` / `replace_attr_stream`: Substitute custom-attribute tags/values.
 
+The tagging functions take structural-tag-name arguments (`heading_tag`, `regesta_tag`,
+`marginalia_tag`) defaulting to the Transkribus/LAGOOS names — override them to match a
+different vocabulary. The `*_stream` helpers accept `continue_on_error=True` to log and skip
+a failed page instead of aborting the run.
+
 ### **Helpers**
-- `find_months_in_text(text)`: Detect French month names in a string.
+- `find_months_in_text(text, ignore_case=True)`: Detect French month names in a string.
 - `get_headings_by_page(df, page_nr)`: Look up reference headers for a page.
 - `get_text(xml, regesta=False)`: Export plain text from PAGE XML.
+- `format_page_xml(xml)`: Return an indented, human-readable copy of PAGE XML (view-only).
+- `count_tag_by_page(client, coll, doc, start, end, tag)`: Count `type:<tag>` lines per page (includes zero-count pages).
 
 ---
 
