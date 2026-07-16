@@ -16,15 +16,23 @@ Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS projec
 
 ---
 
-## Requirements
+## Contents
+
+- [Installation](#installation)
+- [Credentials & Environment](#environment)
+- [Usage Examples](#usage)
+- [Log output](#logging)
+- [Functions & Classes](#functions)
+
+---
+
+## Installation {#installation}
+
+### Requirements
 
 ```
 python >= 3.9
 ```
-
----
-
-## Installation
 
 First, clone or copy this repository to your local machine.
 
@@ -40,9 +48,14 @@ hatch env create
 hatch run pip install -e .
 ```
 
+If using Colab:
+```
+!pip install -q git+https://github.com/levshadrin/trkbs-api
+```
+
 ---
 
-## Credentials & Environment
+## Credentials & Environment {#environment}
 
 ### **Best Practice: Use a `.env` File**
 
@@ -80,33 +93,7 @@ client = TrkbsClient(
 
 ---
 
-## Seeing log output
-
-The package logs through Python's standard `logging` module under the
-`trkbs_api` logger — it never `print()`s. By default `logging` shows only
-warnings and errors, so informational messages (like login confirmation) are
-hidden until you opt in. Add this once in your script or notebook:
-
-```python
-import logging
-logging.basicConfig(level=logging.INFO)
-
-from trkbs_api import TrkbsClient
-client = TrkbsClient()
-# INFO:trkbs_api.client:Transkribus login successful (status 200)
-```
-
-Use `level=logging.DEBUG` instead to also see per-line change details from the
-tagging/streaming functions. To adjust only this package (leaving other
-libraries quiet), target its logger directly:
-
-```python
-logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
-```
-
----
-
-## Usage Example
+## Usage Examples {#usage}
 
 ### General use cases
 
@@ -168,7 +155,33 @@ re-running with `page_start` set to the page that failed.
 
 ---
 
-## Main Functions & Classes
+## Log output {#logging}
+
+The package logs through Python's standard `logging` module under the
+`trkbs_api` logger — it never `print()`s. By default `logging` shows only
+warnings and errors, so informational messages (like login confirmation) are
+hidden until you opt in. Add this once in your script or notebook:
+
+```python
+import logging
+logging.basicConfig(level=logging.INFO)
+
+from trkbs_api import TrkbsClient
+client = TrkbsClient()
+# INFO:trkbs_api.client:Transkribus login successful (status 200)
+```
+
+Use `level=logging.DEBUG` instead to also see per-line change details from the
+tagging/streaming functions. To adjust only this package (leaving other
+libraries quiet), target its logger directly:
+
+```python
+logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
+```
+
+---
+
+## Main Functions & Classes {#functions}
 
 ### **TrkbsClient**
 - Handles Transkribus login and API calls over HTTPS.
