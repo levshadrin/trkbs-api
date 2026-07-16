@@ -8,33 +8,31 @@ from ._streaming import run_stream
 logger = logging.getLogger(__name__)
 
 
-def replace_tag(xml, tag, repl):
+def replace_tag(xml, tag, repl, literal=False):
     """Replace occurrences of ``tag`` with ``repl`` in every line's ``custom``.
 
-    Note:
-        ``tag`` is compiled as a **regular expression** for substitution, but a
-        line is selected via a literal substring test (``tag in custom``). So a
-        ``tag`` containing regex metacharacters — including the braces in
-        Transkribus tags like ``{type:heading;}`` — behaves as a regex during the
-        replace. Pass a regex-escaped pattern if you mean it literally. (A
-        ``literal=True`` mode is planned for 0.3.)
+    ``tag`` is treated as a **regular expression** by default. Pass
+    ``literal=True`` to match ``tag`` verbatim (it is ``re.escape``-d), which is
+    what you want for Transkribus tags containing braces, e.g. ``{type:heading;}``.
+    Selection and substitution use the same compiled pattern, so a line is
+    changed only if the pattern actually matches it.
     """
     soup = bsp(xml, 'xml')
-    regex = re.compile(tag)
+    regex = re.compile(re.escape(tag) if literal else tag)
     for textline in soup.find_all('TextLine'):
         custom_attr = textline.get('custom')
-        if tag in custom_attr:
-            textline['custom'] = re.sub(regex, repl, textline['custom'])
+        if custom_attr and regex.search(custom_attr):
+            textline['custom'] = regex.sub(repl, custom_attr)
             logger.debug('replace_tag: %s', textline['custom'])
 
     output_xml = str(soup)
     return output_xml
 
 
-def _replace_tag_transform(xml, tag, replacement):
+def _replace_tag_transform(xml, tag, replacement, literal=False):
     """Return ``(updated_xml, diffs)`` for a single page's tag replacement."""
     soup = bsp(xml, 'xml')
-    regex = re.compile(tag)
+    regex = re.compile(re.escape(tag) if literal else tag)
     diffs = []
 
     for textline in soup.find_all('TextLine'):
@@ -42,10 +40,10 @@ def _replace_tag_transform(xml, tag, replacement):
             continue
 
         old_value = textline['custom']
-        if tag not in old_value:
+        if not regex.search(old_value):
             continue
 
-        new_value = re.sub(regex, replacement, old_value)
+        new_value = regex.sub(replacement, old_value)
         if old_value != new_value:
             textline['custom'] = new_value
             unicode_tag = textline.select_one('TextEquiv > Unicode')
@@ -60,12 +58,14 @@ def _replace_tag_transform(xml, tag, replacement):
     return (str(soup), diffs) if diffs else (xml, [])
 
 
-def replace_tag_stream(client, coll_id, doc_id, tag, replacement, output_log_path, page_start, page_end):
+def replace_tag_stream(client, coll_id, doc_id, tag, replacement, output_log_path,
+                       page_start=1, page_end=None, literal=False, continue_on_error=False):
     return run_stream(
         client, coll_id, doc_id, page_start, page_end,
-        transform=lambda xml: _replace_tag_transform(xml, tag, replacement),
+        transform=lambda xml: _replace_tag_transform(xml, tag, replacement, literal),
         fieldnames=['page', 'textline_id', 'old_value', 'new_value', 'unicode_text'],
         output_log_path=output_log_path,
+        continue_on_error=continue_on_error,
     )
 
 
@@ -104,10 +104,12 @@ def replace_attr(xml, tag_name, attr_name, old_value, new_value):
     return (str(soup), diffs) if modified_any else (xml, [])
 
 
-def replace_attr_stream(client, coll_id, doc_id, tag_name, attr_name, old_value, new_value, output_log_path, page_start, page_end):
+def replace_attr_stream(client, coll_id, doc_id, tag_name, attr_name, old_value, new_value,
+                        output_log_path, page_start=1, page_end=None, continue_on_error=False):
     return run_stream(
         client, coll_id, doc_id, page_start, page_end,
         transform=lambda xml: replace_attr(xml, tag_name, attr_name, old_value, new_value),
         fieldnames=['page', 'textline_id', 'old_custom', 'new_custom', 'unicode_text'],
         output_log_path=output_log_path,
+        continue_on_error=continue_on_error,
     )

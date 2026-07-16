@@ -1,6 +1,8 @@
 from bs4 import BeautifulSoup as bsp
 from lxml import etree
 
+from ._tags import has_structure_type
+
 
 def format_page_xml(xml):
     """Return an indented, human-readable copy of a PAGE-XML string.
@@ -22,7 +24,7 @@ def format_page_xml(xml):
 
 
 # basic text export with 'regesta' flag (dependant on TRKBS structural tagging)
-def get_text(xml, regesta=False):
+def get_text(xml, regesta=False, regesta_tag='regesta'):
     soup = bsp(xml, 'xml')
     line_list = []
     for unicode in soup.select('TextLine > TextEquiv > Unicode'):
@@ -30,7 +32,7 @@ def get_text(xml, regesta=False):
         text_line = unicode.find_parent('TextLine')
         custom_attr = text_line.get('custom')
         if regesta == False:
-            if 'type:regesta' not in custom_attr:
+            if not has_structure_type(custom_attr, regesta_tag):
                 line_list.append(string)
         else:
             line_list.append(string)

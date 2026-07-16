@@ -6,16 +6,14 @@
 These exercise the 0.2.1 fixes without any Transkribus credentials or network:
 every function under test operates on PAGE-XML strings or DataFrames in memory.
 """
-import warnings
-
 import pandas as pd
-import pytest
 
 from trkbs_api import (
     tag_marginalia,
     tag_empty_lines,
     header_string_lookup,
-    remove_regesta,
+    find_months_in_text,
+    replace_tag,
     format_page_xml,
     get_text,
 )
@@ -81,12 +79,49 @@ def test_tag_empty_lines_collapses_duplicate_regesta_tags():
     assert out_xml.count('structure {type:regesta;}') == 1
 
 
-# --- Tweak: remove_regesta warns (deprecated) --------------------------------
+# --- 0.3.0: token matching does not confuse tag names ------------------------
 
-def test_remove_regesta_emits_deprecation_warning():
-    xml = _page([_line('structure {type:regesta;}', 'x')])
-    with pytest.warns(DeprecationWarning):
-        remove_regesta(xml)
+def test_tag_marginalia_ignores_subheading():
+    # A 'subheading' before the reading order must NOT count as a heading,
+    # so nothing gets tagged as marginalia.
+    xml = _page([
+        _line('readingOrder {index:0;}', 'a note'),
+        _line('readingOrder {index:1;} structure {type:subheading;}', 'Sub'),
+    ])
+    out_xml, diffs = tag_marginalia(xml)
+    assert diffs == []
+    assert out_xml == xml
+
+
+def test_tag_marginalia_accepts_custom_heading_tag():
+    xml = _page([
+        _line('readingOrder {index:0;}', 'a note'),
+        _line('readingOrder {index:1;} structure {type:chapter;}', 'Chap'),
+    ])
+    out_xml, diffs = tag_marginalia(xml, heading_tag='chapter')
+    assert len(diffs) == 1
+    assert 'type:marginalia' in diffs[0]['new_custom']
+
+
+def test_get_text_excludes_regesta_but_not_lookalikes():
+    xml = _page([
+        _line('structure {type:regesta;}', 'summary'),
+        _line('structure {type:pre-regesta;}', 'keep me'),
+        _line('', 'body'),
+    ])
+    assert get_text(xml) == 'keep me\nbody'          # regesta dropped, look-alike kept
+    assert 'summary' in get_text(xml, regesta=True)  # included when asked
+
+
+def test_find_months_in_text_ignore_case():
+    assert find_months_in_text('le 3 janvier') == ['Janvier']
+    assert find_months_in_text('le 3 janvier', ignore_case=False) == []
+
+
+def test_replace_tag_literal_matches_braces():
+    xml = _page([_line('structure {type:heading;}', 'H')])
+    out = replace_tag(xml, '{type:heading;}', '{type:chapter;}', literal=True)
+    assert 'type:chapter' in out and 'type:heading' not in out
 
 
 # --- Feature: format_page_xml pretty-prints without corrupting content --------

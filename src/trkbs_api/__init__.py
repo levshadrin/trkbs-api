@@ -2,7 +2,6 @@ from .client import TrkbsClient
 from .headings import (
     get_headings_by_page,
     find_months_in_text,
-    validate_headings,
     header_string_lookup,
     tag_heading,
     tag_heading_stream,
@@ -16,17 +15,15 @@ from .tag_sub import (
 from .regesta import (
     tag_empty_lines,
     add_regesta,
-    validate_regesta,
-    remove_regesta,
 )
 from .marginalia import tag_marginalia, tag_marginalia_stream
 from .export import get_text, format_page_xml
+from .validate import count_tag_by_page
 
 __all__ = [
     "TrkbsClient",
     "get_headings_by_page",
     "find_months_in_text",
-    "validate_headings",
     "header_string_lookup",
     "tag_heading",
     "tag_heading_stream",
@@ -36,10 +33,9 @@ __all__ = [
     "replace_attr_stream",
     "tag_empty_lines",
     "add_regesta",
-    "validate_regesta",
-    "remove_regesta",
     "tag_marginalia",
     "tag_marginalia_stream",
     "get_text",
     "format_page_xml",
+    "count_tag_by_page",
 ]
