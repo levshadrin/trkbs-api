@@ -17,7 +17,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install package
-        run: pip install -e .
+      - name: Install package with test/type deps
+        run: pip install -e . pytest mypy
       - name: Import smoke test
         run: python -c "import trkbs_api; print('imported', trkbs_api.__all__)"
+      - name: Run tests
+        run: pytest -q
+      - name: Type check
+        run: mypy --install-types --non-interactive src/trkbs_api tests

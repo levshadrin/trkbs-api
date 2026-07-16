@@ -1,0 +1,56 @@
+# SPDX-FileCopyrightText: 2025-present Lev Shadrin <lev.shadrin@uibk.ac.at>
+#
+# SPDX-License-Identifier: MIT
+"""Offline test for the read-method HTTP status check (0.2.1 bugfix).
+
+Builds a TrkbsClient without running __init__ (which would log in over the
+network) and swaps in a fake session, so we can assert that an error response
+now raises instead of being parsed as data.
+"""
+import pytest
+import requests
+
+from trkbs_api import TrkbsClient
+
+
+class _FakeResponse:
+    def __init__(self, status_code, text='', json_data=None):
+        self.status_code = status_code
+        self.text = text
+        self._json = json_data
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            raise requests.HTTPError(f'{self.status_code} Error')
+
+    def json(self):
+        return self._json
+
+
+class _FakeSession:
+    def __init__(self, response):
+        self._response = response
+
+    def get(self, url, timeout=None):
+        return self._response
+
+
+def _client_with_response(response):
+    client = TrkbsClient.__new__(TrkbsClient)  # skip __init__/login
+    client.timeout = 30
+    client.session = _FakeSession(response)
+    return client
+
+
+def test_get_page_raises_on_error_status():
+    client = _client_with_response(
+        _FakeResponse(401, text='<html>Session expired</html>')
+    )
+    # Before the fix this returned the error HTML unchanged.
+    with pytest.raises(requests.HTTPError):
+        client.get_page('coll', 'doc', 1)
+
+
+def test_get_page_returns_text_on_success():
+    client = _client_with_response(_FakeResponse(200, text='<PcGts/>'))
+    assert client.get_page('coll', 'doc', 1) == '<PcGts/>'

@@ -22,3 +22,6 @@ env/
 
 # Internal, non-published review notes
 /_review/
+
+# Editor / assistant local settings
+/.claude/

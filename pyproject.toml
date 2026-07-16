@@ -43,6 +43,13 @@ packages = ["src/trkbs_api"]
 [tool.hatch.version]
 path = "src/trkbs_api/__about__.py"
 
+[tool.hatch.envs.test]
+extra-dependencies = [
+  "pytest",
+]
+[tool.hatch.envs.test.scripts]
+run = "pytest {args:tests}"
+
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
