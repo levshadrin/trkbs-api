@@ -9,15 +9,17 @@ IDX_RE = re.compile(r'readingOrder\s*\{[^}]*index:(\d+)\b', re.IGNORECASE) #read
 MARGINALIA_SNIPPET = ' structure {type:marginalia;}' #append payload for PAGE xml
 
 def _get_reading_index(textline):
-    custom = textline['custom']
-    return int(IDX_RE.search(custom).group(1))
+    m = IDX_RE.search(textline.get('custom', ''))
+    return int(m.group(1)) if m else None
 
 def _first_heading_index(soup):
     lines = soup.find_all('TextLine')
     heading_indices = [
-        _get_reading_index(l)
+        idx
         for l in lines
         if 'custom' in l.attrs and 'heading' in l['custom'].lower()
+        for idx in (_get_reading_index(l),)
+        if idx is not None
     ]
     return min(heading_indices) if heading_indices else None
 
@@ -42,9 +44,8 @@ def tag_marginalia(xml):
         if 'custom' not in textline.attrs:
             continue
 
-        try:
-            idx = _get_reading_index(textline)
-        except Exception:
+        idx = _get_reading_index(textline)
+        if idx is None:
             continue
 
         if idx < first_heading_idx:

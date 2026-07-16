@@ -1,7 +1,10 @@
 import re
+import warnings
 
 from bs4 import BeautifulSoup as bsp
 from tqdm import tqdm
+
+REGESTA_DUP_RE = re.compile(r'(\sstructure {type:regesta;}){2,}')
 
 def tag_empty_lines(xml):
     soup = bsp(xml, 'xml')
@@ -12,18 +15,29 @@ def tag_empty_lines(xml):
             if 'type:regesta' not in text_line['custom']:
                 text_line['custom'] =  custom_attr + ' structure {type:regesta;}'
             else:
-                reg_pat = re.compile(r'(\sstructure {type:regesta;}){2,}')
-                string = text_line['custom']
-                matches = re.findall(reg_pat, string)
-                nr_matches = len(matches)
-                if nr_matches > 1:
-                    text_line['custom'] = re.sub(reg_pat, ' structure {type:regesta;}', string)
-    # output_xml = soup.encode('utf-8')
+                # Collapse any run of repeated regesta tags back to a single one.
+                text_line['custom'] = REGESTA_DUP_RE.sub(
+                    ' structure {type:regesta;}', text_line['custom']
+                )
     output_xml = str(soup)
-            
+
     return output_xml
 
 def remove_regesta(xml):
+    """Delete every ``<TextLine>`` tagged ``regesta`` from the page.
+
+    .. deprecated::
+        Destructive: ``decompose()`` removes the whole line (geometry + text),
+        not just the tag, and damages reading order. Use
+        ``get_text(xml, regesta=False)`` (``export.py``) to exclude regesta from
+        a transcription non-destructively. Scheduled for removal in 0.3.
+    """
+    warnings.warn(
+        'remove_regesta is deprecated and will be removed in 0.3; '
+        'use get_text(xml, regesta=False) to exclude regesta non-destructively.',
+        DeprecationWarning,
+        stacklevel=2,
+    )
     soup = bsp(xml, 'xml')
     for unicode in soup.select('TextLine > TextEquiv > Unicode'):
         text_line = unicode.find_parent('TextLine')

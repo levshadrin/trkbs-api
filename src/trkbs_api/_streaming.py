@@ -32,9 +32,15 @@ def run_stream(client, coll_id, doc_id, page_start, page_end,
 
     Returns:
         The full path of the written changelog CSV.
+
+    Note:
+        Fail-fast: if a page fails to POST back (``post_page`` raises on any HTTP
+        error), the run stops there. Pages processed before the failure are
+        already committed to Transkribus and logged in the CSV. Fix the cause and
+        resume by re-running with ``page_start`` set to the failed page number.
     """
     os.makedirs(output_log_path, exist_ok=True)
-    date_str = datetime.now().strftime('%d-%m_%H%M%S')
+    date_str = datetime.now().strftime('%Y%m%d_%H%M%S')
     logfile_full = os.path.join(output_log_path, f'changelog_{date_str}.csv')
 
     with open(logfile_full, 'w', newline='', encoding='utf-8') as logfile:
@@ -45,8 +51,7 @@ def run_stream(client, coll_id, doc_id, page_start, page_end,
             updated_xml, diffs = transform(xml)
             if diffs:
                 for diff in diffs:
-                    diff['page'] = page_number
-                    writer.writerow(diff)
+                    writer.writerow({**diff, 'page': page_number})
                 client.post_page(updated_xml, coll_id, doc_id, page_number)
 
     logger.info('Changelog written to %s', logfile_full)

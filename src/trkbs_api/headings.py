@@ -25,25 +25,24 @@ def find_months_in_text(text, months=MONTH_NAMES_FR):
 
 
 def validate_headings(client, coll, doc, page_start, page_end):
-    reg_dict = {}
+    heading_dict = {}
     for i in tqdm(range(page_start, page_end + 1)):
         xml = client.get_page(coll, doc, i)
         soup = bsp(xml, 'xml')
-        reg_counter = 0
+        heading_counter = 0
         for unicode in soup.select('TextLine > TextEquiv > Unicode'):
             text_line = unicode.find_parent('TextLine')
             custom_attr = text_line.get('custom')
             if 'heading' in custom_attr:
-                reg_counter += 1
-                reg_dict.update({f'Page_{i}': f'{reg_counter}'})
+                heading_counter += 1
+                heading_dict.update({f'Page_{i}': f'{heading_counter}'})
 
-    return reg_dict
+    return heading_dict
 
 
 ## v 0.2
 def header_string_lookup(df, string):
-    if df['text'].str.fullmatch(re.escape(string)).any():  # re.escape() to deal with escape chars
-        return True
+    return bool(df['text'].str.fullmatch(re.escape(string)).any())  # re.escape() to deal with escape chars
 
 
 def tag_heading(df_header, xml):

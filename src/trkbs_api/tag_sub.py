@@ -9,6 +9,16 @@ logger = logging.getLogger(__name__)
 
 
 def replace_tag(xml, tag, repl):
+    """Replace occurrences of ``tag`` with ``repl`` in every line's ``custom``.
+
+    Note:
+        ``tag`` is compiled as a **regular expression** for substitution, but a
+        line is selected via a literal substring test (``tag in custom``). So a
+        ``tag`` containing regex metacharacters — including the braces in
+        Transkribus tags like ``{type:heading;}`` — behaves as a regex during the
+        replace. Pass a regex-escaped pattern if you mean it literally. (A
+        ``literal=True`` mode is planned for 0.3.)
+    """
     soup = bsp(xml, 'xml')
     regex = re.compile(tag)
     for textline in soup.find_all('TextLine'):

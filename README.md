@@ -123,6 +123,11 @@ For batch processing across a page range, use the `*_stream` helpers
 `tag_marginalia_stream`), which write a timestamped CSV changelog and post
 modified pages back automatically.
 
+These helpers are **fail-fast**: if a page fails to upload, the run stops there.
+Pages processed before the failure are already saved to Transkribus and recorded
+in the CSV changelog. Fix the cause (e.g. an expired session) and resume by
+re-running with `page_start` set to the page that failed.
+
 ---
 
 ## Main Functions & Classes

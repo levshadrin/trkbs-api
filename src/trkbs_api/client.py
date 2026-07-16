@@ -34,12 +34,14 @@ class TrkbsClient:
     def get_col_ids(self):
         url = f'{BASE_URL}/collections'
         response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
         col_dict = {c['colName']: c['colId'] for c in response.json()['trpCollection']}
         return col_dict
 
     def get_doc_ids(self, coll_id):
         url = f'{BASE_URL}/collections/{coll_id}/list'
         response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
         doc_dict = {d['title']: d['docId'] for d in response.json()}
         return doc_dict
 
@@ -47,6 +49,7 @@ class TrkbsClient:
         url = f'{BASE_URL}/collections/{coll_id}/{doc_id}/{page_nr}/text'
         if param: url += f'?{param}'
         response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
         return response.text
 
     def get_pages_stream(self, coll_id, doc_id, page_start, page_end):  # TODO add default for page_start=1
@@ -59,12 +62,14 @@ class TrkbsClient:
         url = f'{BASE_URL}/collections/{coll_id}/{doc_id}/{page_nr}/list'
         if param: url += f'?{param}'
         response = self.session.get(url, timeout=self.timeout)  # list
+        response.raise_for_status()
         return response.json()
 
     def get_metadata(self, coll_id, doc_id, param=None):
         url = f'{BASE_URL}/collections/{coll_id}/{doc_id}/metadata'
         if param: url += f'?{param}'
         response = self.session.get(url, timeout=self.timeout)
+        response.raise_for_status()
         return response.json()
 
     def get_page_nr(self, coll_id, doc_id, param=None):  # TODO refactor as get_page_total
