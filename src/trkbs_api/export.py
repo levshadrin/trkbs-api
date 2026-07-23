@@ -28,9 +28,9 @@ def get_text(xml, cleanup=False, flatten=False, regesta=False, regesta_tag='rege
     """Extract the reading text from a PAGE-XML string.
 
     ``cleanup`` rejoins words hyphenated across line breaks (the ``¬``
-    continuation sign) and collapses runs of spaces/tabs. ``flatten`` (on by
-    default) folds the remaining line breaks into single spaces, yielding one
-    continuous line; set it to ``False`` to keep one line per ``<TextLine>``.
+    continuation sign) and collapses runs of spaces/tabs. ``flatten`` folds the
+    remaining line breaks into single spaces, yielding one continuous line;
+    left off by default, so each ``<TextLine>`` stays on its own line.
     ``regesta`` includes lines tagged ``structure {type:<regesta_tag>;}``,
     which are dropped by default.
     """

@@ -135,13 +135,13 @@ Two flags control formatting:
 
 - `cleanup` (default `False`): rejoins words hyphenated across line breaks (the
   `¬` continuation sign) and collapses runs of spaces/tabs.
-- `flatten` (default `True`): folds line breaks into single spaces to yield one
-  continuous line. Set `flatten=False` to keep one line per `<TextLine>`.
+- `flatten` (default `False`): folds line breaks into single spaces to yield one
+  continuous line. Leave as-is to keep one line per `<TextLine>`.
 
 ```python
-get_text(page_xml, cleanup=True)                  # de-hyphenated, one flat line
-get_text(page_xml, cleanup=True, flatten=False)   # de-hyphenated, line breaks kept
-get_text(page_xml, regesta=True)                  # also include regesta-tagged lines
+get_text(page_xml, cleanup=True)                 # de-hyphenated, one line per TextLine
+get_text(page_xml, cleanup=True, flatten=True)   # de-hyphenated, folded to one flat line
+get_text(page_xml, regesta=True)                 # also include regesta-tagged lines
 ```
 
 ### LAGOOS-specific use cases
@@ -225,7 +225,7 @@ a failed page instead of aborting the run.
 ### **Helpers**
 - `find_months_in_text(text, ignore_case=True)`: Detect French month names in a string.
 - `get_headings_by_page(df, page_nr)`: Look up reference headers for a page.
-- `get_text(xml, cleanup=False, flatten=True, regesta=False)`: Export plain text from PAGE XML (`cleanup` de-hyphenates and normalizes whitespace; `flatten` folds line breaks into spaces).
+- `get_text(xml, cleanup=False, flatten=False, regesta=False)`: Export plain text from PAGE XML (`cleanup` de-hyphenates and normalizes whitespace; `flatten` folds line breaks into spaces).
 - `format_page_xml(xml)`: Return an indented, human-readable copy of PAGE XML (view-only).
 - `count_tag_by_page(client, coll, doc, start, end, tag)`: Count `type:<tag>` lines per page (includes zero-count pages).
 
