@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [0.3.1] - 2026-07-23
+
+### Added
+- **`get_text` text cleanup.** Two new flags:
+  - `cleanup=False` — rejoins words hyphenated across line breaks (the `¬`
+    continuation sign) and collapses runs of spaces/tabs.
+  - `flatten=True` — folds line breaks into single spaces for one continuous
+    line; pass `flatten=False` to keep one line per `<TextLine>`.
+
+### Changed
+- **`get_text` default output.** With `flatten=True` as the default, `get_text(xml)`
+  now returns a single flattened line instead of newline-separated lines. Pass
+  `flatten=False` for the previous behaviour.
+
 ## [0.3.0] - 2026-07-16
 
 First minor release: new API, a rename, and behaviour changes. Includes the

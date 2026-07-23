@@ -96,7 +96,7 @@ client = TrkbsClient(
 ### General use cases
 
 ```python
-from trkbs_api import TrkbsClient, tag_heading, get_headings_by_page, find_months_in_text
+from trkbs_api import TrkbsClient, tag_heading, get_headings_by_page, find_months_in_text, get_text
 from bs4 import BeautifulSoup
 
 # Initialize client (uses env vars / .env if no args)
@@ -124,6 +124,25 @@ page_xml = client.get_page(coll_id, doc_id, page_nr)
 > This is **view-only** — pretty-printing adds whitespace, so never pass a
 > prettified string to `post_page`. Use the default (raw) output for edits and
 > uploads; the batch/tagging helpers already do.
+
+```python
+# Export the reading text from PAGE XML
+text = get_text(page_xml)
+print(text)
+```
+
+Two flags control formatting:
+
+- `cleanup` (default `False`): rejoins words hyphenated across line breaks (the
+  `¬` continuation sign) and collapses runs of spaces/tabs.
+- `flatten` (default `True`): folds line breaks into single spaces to yield one
+  continuous line. Set `flatten=False` to keep one line per `<TextLine>`.
+
+```python
+get_text(page_xml, cleanup=True)                  # de-hyphenated, one flat line
+get_text(page_xml, cleanup=True, flatten=False)   # de-hyphenated, line breaks kept
+get_text(page_xml, regesta=True)                  # also include regesta-tagged lines
+```
 
 ### LAGOOS-specific use cases
 
@@ -206,7 +225,7 @@ a failed page instead of aborting the run.
 ### **Helpers**
 - `find_months_in_text(text, ignore_case=True)`: Detect French month names in a string.
 - `get_headings_by_page(df, page_nr)`: Look up reference headers for a page.
-- `get_text(xml, regesta=False)`: Export plain text from PAGE XML.
+- `get_text(xml, cleanup=False, flatten=True, regesta=False)`: Export plain text from PAGE XML (`cleanup` de-hyphenates and normalizes whitespace; `flatten` folds line breaks into spaces).
 - `format_page_xml(xml)`: Return an indented, human-readable copy of PAGE XML (view-only).
 - `count_tag_by_page(client, coll, doc, start, end, tag)`: Count `type:<tag>` lines per page (includes zero-count pages).
 

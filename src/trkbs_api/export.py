@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup as bsp
 from lxml import etree
+import re
 
 from ._tags import has_structure_type
 
@@ -24,19 +25,36 @@ def format_page_xml(xml):
 
 
 # basic text export with 'regesta' flag (dependant on TRKBS structural tagging)
-def get_text(xml, regesta=False, regesta_tag='regesta'):
+def get_text(xml, cleanup=False, flatten=True, regesta=False, regesta_tag='regesta'):
+    """Extract the reading text from a PAGE-XML string.
+
+    ``cleanup`` rejoins words hyphenated across line breaks (the ``¬``
+    continuation sign) and collapses runs of spaces/tabs. ``flatten`` (on by
+    default) folds the remaining line breaks into single spaces, yielding one
+    continuous line; set it to ``False`` to keep one line per ``<TextLine>``.
+    ``regesta`` includes lines tagged ``structure {type:<regesta_tag>;}``,
+    which are dropped by default.
+    """
     soup = bsp(xml, 'xml')
     line_list = []
     for unicode in soup.select('TextLine > TextEquiv > Unicode'):
         string = unicode.string
-        text_line = unicode.find_parent('TextLine')
-        custom_attr = text_line.get('custom')
-        if regesta == False:
-            if not has_structure_type(custom_attr, regesta_tag):
-                line_list.append(string)
-        else:
+        if string is None:
+            continue
+        custom_attr = unicode.find_parent('TextLine').get('custom')
+        if regesta or not has_structure_type(custom_attr, regesta_tag):
             line_list.append(string)
 
-    line_list = [x for x in line_list if x is not None]        
+    text = '\n'.join(line_list)
 
-    return '\n'.join(line_list)
+    replacements = []
+    if cleanup:
+        replacements.append((r'¬\s*', ''))     # rejoin words split across lines
+    if flatten:
+        replacements.append((r'\n', ' '))       # fold line breaks into spaces
+    if cleanup:
+        replacements.append((r'[ \t]+', ' '))   # collapse runs of spaces/tabs
+    for pattern, repl in replacements:
+        text = re.sub(pattern, repl, text)
+
+    return text

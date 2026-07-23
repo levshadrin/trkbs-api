@@ -109,7 +109,7 @@ def test_get_text_excludes_regesta_but_not_lookalikes():
         _line('structure {type:pre-regesta;}', 'keep me'),
         _line('', 'body'),
     ])
-    assert get_text(xml) == 'keep me\nbody'          # regesta dropped, look-alike kept
+    assert get_text(xml) == 'keep me body'           # regesta dropped, look-alike kept (flattened)
     assert 'summary' in get_text(xml, regesta=True)  # included when asked
 
 
