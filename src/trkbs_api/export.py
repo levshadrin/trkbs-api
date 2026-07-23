@@ -24,8 +24,7 @@ def format_page_xml(xml):
     ).decode('utf-8')
 
 
-# basic text export with 'regesta' flag (dependant on TRKBS structural tagging)
-def get_text(xml, cleanup=False, flatten=True, regesta=False, regesta_tag='regesta'):
+def get_text(xml, cleanup=False, flatten=False, regesta=False, regesta_tag='regesta'):
     """Extract the reading text from a PAGE-XML string.
 
     ``cleanup`` rejoins words hyphenated across line breaks (the ``¬``
