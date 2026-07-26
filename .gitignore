@@ -21,8 +21,9 @@ env/
 # OS
 .DS_Store
 
-# Internal, non-published review notes
+# Internal testing resources
 /_review/
+/_trkbs_xml/
 
 # Editor / assistant local settings
 /.claude/
