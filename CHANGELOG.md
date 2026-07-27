@@ -2,6 +2,67 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.0] - 2026-07-27
+
+### Removed
+- **`tag_sub.py`** — backward-compatibility re-export of `edit_tags.py`, no longer
+  needed. All functions are exported from the top-level `trkbs_api` namespace.
+
+### Changed
+- **Public module renames for clarity** — module names now use `<verb>_<object>`
+  pattern:
+  - `export.py` → `export_text.py` — explicit about text extraction + formatting
+  - `search.py` → `search_tags.py` — explicit about tag queries
+  - `edit.py` → `edit_tags.py` — explicit about tag mutations
+  - `validate.py` → `count_structure.py` — explicit about structural tag counting
+
+  **No impact on public API** — all functions exported from `trkbs_api` namespace
+  unchanged. Direct submodule imports (e.g., `from trkbs_api.search_tags import
+  find_tags`) work but are unnecessary; use the flat namespace:
+  `from trkbs_api import find_tags`.
+
+## [0.4.0] - 2026-07-27
+
+### Added
+- **Query and find semantic tags: `find_tags(xml, tag=..., text=...)`** — the main
+  scenario. Find all instances of a tag by name, optionally filtered by a regex
+  pattern over the transcribed text (L1), and inspect the resolved token and
+  line ID. E.g. `find_tags(xml, tag='person', text=r'Μ[ιί]λλ[εέ]ρ.+')` answers
+  "has Μίλλερ been tagged as person everywhere it occurs?"
+- **Document-wide tag queries: `find_tags_by_page(client, coll, doc, ...)`** —
+  stream `find_tags` across a page range, stamping each result with its page number.
+- **Editorial validation: `count_tags(xml)` / `count_tags_by_page(...)`** — count
+  tag instances by name on a page or range, for validation checks like "expected
+  2 `person` tags, found only 1".
+- **Safe tag rename: `replace_tag_name(xml, old, new)`** — operates on the parsed
+  tag model so the tag name is matched exactly, not as a substring. Unlike
+  `replace_tag`, it does not corrupt property keys (§2 of the analysis).
+- **Backward-compatible module alias** — `tag_sub.py` renamed to `edit.py` for
+  clarity (search vs edit). `tag_sub` is preserved as a re-export alias.
+- **Three-layer data model:** `TagInstance` dataclass that separates L1 (text),
+  L2 (tag name + anchor), and L3 (opaque properties), enabling correct queries
+  and edits. The model is the foundation for future L3 operations (property
+  normalisation, enrichment, etc.).
+
+### Changed
+- **`replace_tag` and `replace_attr` are now documented as unsafe** for tag/property
+  name changes. They remain as an escape hatch for edge cases, but new code should
+  use `replace_tag_name` and operations on the tag model instead.
+- **Round-trip safety:** `replace_tag` and `tag_empty_lines` now return the input
+  XML unchanged if no matches are found (S3 guard), preventing silent mutation of
+  pages that were unchanged.
+
+### Fixed
+- **Data corruption on zero-match runs** — `replace_tag` would always re-serialize
+  even when nothing matched, causing `&#10;` (encoded newlines) in `custom` values
+  to collapse to spaces on the next parse. Now returns input unchanged when no
+  matches are found.
+
+### Deprecated
+- **`count_tag_by_page` is limited to structural tags** and should not be used for
+  general tag audits. Use `count_tags_by_page` (new, pluralised, covers all 17 tag
+  names) instead. `count_tag_by_page` is kept for backward compatibility.
+
 ## [0.3.1] - 2026-07-23
 
 ### Added

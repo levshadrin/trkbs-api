@@ -10,6 +10,7 @@ Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS projec
 
 - **API Client**: Log in and interact with Transkribus via a simple `TrkbsClient` class.
 - **Collection, document, page navigation**: Use `.get_col_ids()`, `.get_doc_ids()`, and `.get_page()` methods to navigate the standard Transkribus document structure.
+- **Find and inspect tags**: Query semantic tags (persons, places, works, etc.) by name, filter by regex over the transcribed text, and inspect the resolved spans and metadata.
 - **Semantic tagging**: Tag PAGE-XML `<TextLine>` elements as Transkribus strucutral tags (e.g. `heading`, `regesta`, or `marginalia`) via the `custom` attribute.
 - **Batch streaming**: Page through a document, apply a transform, write a CSV changelog, and post changes back.
 - **Easy integration**: Use as a standalone tool or import in any notebook or script.
@@ -144,6 +145,35 @@ get_text(page_xml, cleanup=True, flatten=True)   # de-hyphenated, folded to one 
 get_text(page_xml, regesta=True)                 # also include regesta-tagged lines
 ```
 
+### Finding and inspecting tags
+
+Transkribus stores semantic tags (persons, places, works, etc.) in the `custom` property 
+for the relevant `<TextLine>`. The tag layer separates three concerns: the transcribed text,
+the tag annotation, and normalised attrbutes.
+
+```python
+from trkbs_api import find_tags, find_tags_by_page, count_tags
+
+# Find all 'person' tags on a single page
+persons = find_tags(page_xml, tag='person')
+for inst in persons:
+    print(f"{inst.text} (line {inst.line_id}): {inst.properties_raw}")
+
+# Find instances of a specific name, in any spelling
+# Returns all person tags whose text matches the regex (e.g. inflections of a Greek name)
+greek_name_matches = find_tags_by_page(
+    client, coll_id, doc_id,
+    tag='person',
+    text=r'Μ[ιί]λλ[εέ]ρ.+'  # catches Μίλλερ, Μιλλέρου, Μιλλέρῳ, …
+)
+print(f"Found {len(greek_name_matches)} matches of the Miller family")
+
+# Editorial validation: count tags on a page to spot missed or dropped annotations
+page_counts = count_tags(page_xml)
+if page_counts.get('person', 0) < 2:
+    print("WARNING: expected 2 person tags on this page, found only", page_counts.get('person', 0))
+```
+
 ### LAGOOS-specific use cases
 
 ```python
@@ -211,11 +241,18 @@ logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
   - `post_page(xml, coll_id, doc_id, page_nr)`: Upload modified PAGE XML (raises on HTTP error).
   - `get_metadata` / `get_num_pages` / `get_page_transcript_ids`: Document/page metadata helpers.
 
+### **Finding and Inspecting Tags**
+- `find_tags(xml, tag=None, text=None)`: Find tag instances on a single page, optionally filtered by tag name and regex over the L1 text (transcribed tokens).
+- `find_tags_by_page(client, coll, doc, tag=None, text=None, page_start=1, page_end=None)`: Stream `find_tags` across a page range.
+- `count_tags(xml)` / `count_tags_by_page(...)`: Count tag instances by name on a page or range (editorial validation).
+- Returns `TagInstance` dataclass with fields: `tag`, `offset`, `length`, `text`, `properties_raw`, `line_id`, `page`.
+
 ### **Tagging**
 - `tag_heading(df_header, xml)` / `tag_heading_stream(...)`: Tag heading lines.
 - `tag_empty_lines(xml)`, `add_regesta`: Regesta handling.
 - `tag_marginalia(xml)` / `tag_marginalia_stream(...)`: Tag marginalia lines.
-- `replace_tag` / `replace_tag_stream`, `replace_attr` / `replace_attr_stream`: Substitute custom-attribute tags/values.
+- `replace_tag` / `replace_tag_stream`, `replace_attr` / `replace_attr_stream`: Substitute custom-attribute tags/values (unsafe for tag name changes).
+- `replace_tag_name(xml, old_name, new_name)` / `replace_tag_name_stream(...)`: Safely rename a tag across all blocks.
 
 The tagging functions take structural-tag-name arguments (`heading_tag`, `regesta_tag`,
 `marginalia_tag`) defaulting to the Transkribus/LAGOOS names — override them to match a

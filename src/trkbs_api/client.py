@@ -3,7 +3,7 @@ import os
 
 import requests
 
-from .export import format_page_xml
+from .export_text import format_page_xml
 
 try:
     from dotenv import load_dotenv
