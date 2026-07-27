@@ -30,7 +30,7 @@ Developed by Lev Shadrin (<lev.shadrin@uibk.ac.at>) as part of the LAGOOS projec
 ### Requirements
 
 ```
-python >= 3.9
+python >= 3.10
 ```
 
 First, clone or copy this repository to your local machine.

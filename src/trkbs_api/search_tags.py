@@ -35,6 +35,19 @@ class TagInstance:
     custom: str           # full custom attribute, for context
 
 
+def _attr_str(value) -> str | None:
+    """Normalise a bs4 attribute value to a plain string.
+
+    bs4 types ``Tag.get`` as ``str | AttributeValueList | None``, because
+    multi-valued attributes (e.g. ``class``) come back as a list. PAGE XML's
+    ``custom`` and ``id`` are always single-valued, so join defensively rather
+    than assume.
+    """
+    if value is None or isinstance(value, str):
+        return value
+    return ' '.join(value)
+
+
 def find_tags(xml: str, tag: str | None = None, text: str | None = None, flags: int = 0) -> list[TagInstance]:
     """Find tag instances on a single page.
 
@@ -52,8 +65,8 @@ def find_tags(xml: str, tag: str | None = None, text: str | None = None, flags: 
     instances = []
 
     for textline in soup.find_all('TextLine'):
-        custom_attr = textline.get('custom')
-        line_id = textline.get('id')
+        custom_attr = _attr_str(textline.get('custom'))
+        line_id = _attr_str(textline.get('id'))
         unicode_elem = textline.select_one('TextEquiv > Unicode')
         unicode_text = unicode_elem.get_text() if unicode_elem else None
 

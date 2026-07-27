@@ -5,8 +5,14 @@ All notable changes to this project are documented here.
 ## [0.5.0] - 2026-07-27
 
 ### Removed
-- **`tag_sub.py`** — backward-compatibility re-export of `edit_tags.py`, no longer
-  needed. All functions are exported from the top-level `trkbs_api` namespace.
+- **Python 3.9 support — the package now requires Python 3.10 or newer.**
+  `requires-python` is `>=3.10`, the 3.9 classifier is dropped, and CI tests
+  3.10/3.11/3.12. 3.9 reached end of life in October 2025, and the tag model
+  added in 0.4.0 uses PEP 604 type syntax (`int | None`) that 3.9 cannot
+  evaluate at runtime. Users on 3.9 should stay on 0.3.1.
+- **`tag_sub.py`** — backward-compatibility re-export of the tag-mutation module,
+  no longer needed. All functions are exported from the top-level `trkbs_api`
+  namespace.
 
 ### Changed
 - **Public module renames for clarity** — module names now use `<verb>_<object>`
