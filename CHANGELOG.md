@@ -2,6 +2,44 @@
 
 All notable changes to this project are documented here.
 
+## [0.5.1] - 2026-07-27
+
+Patch release: progress-bar rendering fixes, plus an opt-out flag. No breaking
+changes — every existing call behaves as before.
+
+### Fixed
+- **Progress bars no longer print a new line per page in Jupyter/Colab.** The
+  bars now come from `tqdm.auto`, which renders as a widget in notebooks instead
+  of writing carriage returns to stderr (which notebook front-ends flush as
+  separate lines).
+- **Progress bars show a percentage and ETA instead of a bare counter.** They
+  were wrapping a generator with no known length, so they could only display
+  `13page [00:12, 1.1page/s]`. The page range is now resolved before iterating
+  and passed as `total` — at no extra API cost, since the underlying
+  `get_pages_stream` was already making that same call.
+- **Log records no longer break the bar during `*_stream` runs.** Those loops log
+  per page, and each record forced the bar to redraw on a new line; they are now
+  routed through `tqdm.contrib.logging.logging_redirect_tqdm` so log output
+  scrolls above a stationary bar.
+
+### Added
+- **`progress` argument on every page-range function** — `find_tags_by_page`,
+  `count_tags_by_page`, `count_tag_by_page` and the `*_stream` helpers accept
+  `progress=False` to suppress the progress bar, for scripts, CI, and calls made
+  inside a caller's own loop. Defaults to `True`, so existing behaviour is
+  unchanged.
+- **`count_tag_by_page` accepts `page_end=None`** to run to the end of the
+  document, matching the convention already used by every other page-range
+  function. Passing an explicit page number works exactly as before.
+
+### Changed
+- **Minimum `tqdm` is now 4.60** (was unpinned), the first release providing
+  `tqdm.contrib.logging`. This is the only requirement change in the release; if
+  you pin `trkbs-api` loosely, note that upgrading may pull a newer `tqdm`.
+- Page iteration is consolidated into one internal helper (`_streaming.iter_pages`)
+  used by all four page-range functions, so bar labelling and `page_end=None`
+  resolution behave identically everywhere. No public API change.
+
 ## [0.5.0] - 2026-07-27
 
 ### Removed

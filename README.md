@@ -200,6 +200,21 @@ Pages processed before the failure are already saved to Transkribus and recorded
 in the CSV changelog. Fix the cause (e.g. an expired session) and resume by
 re-running with `page_start` set to the page that failed.
 
+### Progress bars
+
+Every function that walks a page range (`find_tags_by_page`, `count_tags_by_page`,
+`count_tag_by_page`, and the `*_stream` helpers) shows a progress bar with a
+percentage and ETA. In Jupyter and Colab it renders as a widget rather than
+writing to the console, so it updates in place instead of printing a new line per
+page.
+
+Pass `progress=False` to silence it — useful in scripts, in CI, or when calling
+one of these inside your own loop:
+
+```python
+counts = count_tags_by_page(client, coll_id, doc_id, progress=False)
+```
+
 ---
 
 ## Log output
@@ -243,7 +258,7 @@ logging.getLogger('trkbs_api').setLevel(logging.DEBUG)
 
 ### **Finding and Inspecting Tags**
 - `find_tags(xml, tag=None, text=None)`: Find tag instances on a single page, optionally filtered by tag name and regex over the L1 text (transcribed tokens).
-- `find_tags_by_page(client, coll, doc, tag=None, text=None, page_start=1, page_end=None)`: Stream `find_tags` across a page range.
+- `find_tags_by_page(client, coll, doc, tag=None, text=None, page_start=1, page_end=None, progress=True)`: Stream `find_tags` across a page range.
 - `count_tags(xml)` / `count_tags_by_page(...)`: Count tag instances by name on a page or range (editorial validation).
 - Returns `TagInstance` dataclass with fields: `tag`, `offset`, `length`, `text`, `properties_raw`, `line_id`, `page`.
 
@@ -264,7 +279,7 @@ a failed page instead of aborting the run.
 - `get_headings_by_page(df, page_nr)`: Look up reference headers for a page.
 - `get_text(xml, cleanup=False, flatten=False, regesta=False)`: Export plain text from PAGE XML (`cleanup` de-hyphenates and normalizes whitespace; `flatten` folds line breaks into spaces).
 - `format_page_xml(xml)`: Return an indented, human-readable copy of PAGE XML (view-only).
-- `count_tag_by_page(client, coll, doc, start, end, tag)`: Count `type:<tag>` lines per page (includes zero-count pages).
+- `count_tag_by_page(client, coll, doc, start, end, tag, progress=True)`: Count `type:<tag>` lines per page (includes zero-count pages; `end=None` runs to the end of the document).
 
 ---
 

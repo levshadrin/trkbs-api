@@ -27,7 +27,7 @@ dependencies = [
     "beautifulsoup4",
     "lxml",
     "pandas",
-    "tqdm",
+    "tqdm>=4.60",   # tqdm.contrib.logging (logging_redirect_tqdm)
     "python-dotenv",
     ]
 

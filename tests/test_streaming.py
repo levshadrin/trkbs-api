@@ -6,7 +6,7 @@ import pytest
 import requests
 
 from trkbs_api import count_tag_by_page
-from trkbs_api._streaming import run_stream
+from trkbs_api._streaming import iter_pages, run_stream
 
 
 def _page(textlines):
@@ -28,8 +28,10 @@ class MockClient:
         self.pages = pages                 # {page_nr: xml}
         self.fail_pages = set(fail_pages)
         self.posted = []
+        self.num_pages_calls = 0
 
     def get_num_pages(self, coll, doc):
+        self.num_pages_calls += 1
         return len(self.pages)
 
     def get_page(self, coll, doc, page_nr):
@@ -45,6 +47,42 @@ class MockClient:
         if page_nr in self.fail_pages:
             raise requests.HTTPError(f'page {page_nr} failed')
         self.posted.append(page_nr)
+
+
+def test_iter_pages_resolves_page_end_without_extra_request():
+    """page_end=None is resolved once, not once here and again in the stream."""
+    client = MockClient({1: '<a/>', 2: '<a/>', 3: '<a/>'})
+    pages = list(iter_pages(client, 'c', 'd', 1, None, progress=False))
+    assert [n for n, _ in pages] == [1, 2, 3]
+    assert client.num_pages_calls == 1
+
+
+def test_iter_pages_progress_flag_controls_output(capsys):
+    """progress=False silences the bar; the default still draws one."""
+    client = MockClient({1: '<a/>', 2: '<a/>'})
+
+    list(iter_pages(client, 'c', 'd', 1, 2, desc='Quiet', progress=False))
+    assert capsys.readouterr().err == ''
+
+    list(iter_pages(client, 'c', 'd', 1, 2, desc='Loud', progress=True))
+    assert 'Loud' in capsys.readouterr().err
+
+
+def test_iter_pages_bar_knows_its_total(capsys):
+    """The bar shows a percentage, not a bare 'Npage [..]' counter."""
+    client = MockClient({1: '<a/>', 2: '<a/>', 3: '<a/>', 4: '<a/>'})
+    list(iter_pages(client, 'c', 'd', 1, None, desc='Counting', progress=True))
+    err = capsys.readouterr().err
+    assert '4/4' in err and '100%' in err
+
+
+def test_count_tag_by_page_accepts_page_end_none():
+    client = MockClient({
+        1: _page([_line('structure {type:regesta;}')]),
+        2: _page([_line('readingOrder {index:0;}')]),
+    })
+    counts = count_tag_by_page(client, 'c', 'd', 1, None, 'regesta', progress=False)
+    assert counts == {'Page_1': 1, 'Page_2': 0}
 
 
 def test_count_tag_by_page_includes_zero_pages():

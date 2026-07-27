@@ -12,9 +12,9 @@ from dataclasses import dataclass
 from collections import Counter
 
 from bs4 import BeautifulSoup as bsp
-from tqdm import tqdm
 
 from ._custom import iter_blocks
+from ._streaming import iter_pages
 
 
 @dataclass(frozen=True)
@@ -103,7 +103,7 @@ def find_tags(xml: str, tag: str | None = None, text: str | None = None, flags: 
 
 def find_tags_by_page(client, coll_id: int, doc_id: int, tag: str | None = None,
                       text: str | None = None, page_start: int = 1, page_end: int | None = None,
-                      flags: int = 0) -> list[TagInstance]:
+                      flags: int = 0, progress: bool = True) -> list[TagInstance]:
     """Find tag instances across a page range.
 
     Args:
@@ -111,16 +111,16 @@ def find_tags_by_page(client, coll_id: int, doc_id: int, tag: str | None = None,
         coll_id, doc_id: Transkribus collection and document IDs.
         tag, text, flags: as find_tags.
         page_start, page_end: inclusive page range; page_end=None streams to end of document.
+        progress: set False to suppress the progress bar.
 
     Returns:
         List of TagInstance with page stamped.
     """
     instances = []
 
-    for page_nr, page_xml in tqdm(
-        client.get_pages_stream(coll_id, doc_id, page_start, page_end),
-        desc=f"Searching {coll_id}/{doc_id}",
-        unit="page"
+    for page_nr, page_xml in iter_pages(
+        client, coll_id, doc_id, page_start, page_end,
+        desc=f"Searching {coll_id}/{doc_id}", progress=progress
     ):
         for inst in find_tags(page_xml, tag=tag, text=text, flags=flags):
             instances.append(TagInstance(
@@ -149,18 +149,20 @@ def count_tags(xml: str) -> dict[str, int]:
 
 
 def count_tags_by_page(client, coll_id: int, doc_id: int, page_start: int = 1,
-                       page_end: int | None = None) -> dict[int, dict[str, int]]:
+                       page_end: int | None = None,
+                       progress: bool = True) -> dict[int, dict[str, int]]:
     """Count tag instances by name across a page range.
 
     Returns a dict mapping page number to count dict. Used for editorial validation
     across a batch, e.g. to spot under-tagged pages.
+
+    ``progress`` set False suppresses the progress bar.
     """
     counts = {}
 
-    for page_nr, page_xml in tqdm(
-        client.get_pages_stream(coll_id, doc_id, page_start, page_end),
-        desc=f"Counting {coll_id}/{doc_id}",
-        unit="page"
+    for page_nr, page_xml in iter_pages(
+        client, coll_id, doc_id, page_start, page_end,
+        desc=f"Counting {coll_id}/{doc_id}", progress=progress
     ):
         counts[page_nr] = count_tags(page_xml)
 
